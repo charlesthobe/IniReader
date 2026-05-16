@@ -162,6 +162,39 @@ public:
         catch (...) {}
         return fltDefaultValue;
     }
+
+    double ReadDouble(std::string_view szSection, std::string_view szKey, double dblDefaultValue)
+    {
+        try
+        {
+            if (m_ini.size() && m_ini.has(szSection.data()))
+            {
+                auto& collection = m_ini[szSection.data()];
+                if (collection.has(szKey.data()))
+                {
+                    auto& value = collection[szKey.data()];
+                    // Get rid of comments if any
+                    auto comment_pos = value.find("//");
+                    if (comment_pos != std::string::npos)
+                    {
+                        value.resize(comment_pos);
+                    }
+                    // Handle ratio strings like "16:9"
+                    auto colon_pos = value.find(':');
+                    // If there's no colon character ':', just convert to double
+                    if (colon_pos == std::string::npos)
+                    {
+                        return std::stod(value.data());
+                    }
+                    auto numerator = std::stod(value.substr(0, colon_pos));
+                    auto denominator = std::stod(value.substr(colon_pos + 1));
+                    return numerator / denominator;
+                }
+            }
+        }
+        catch (...) {}
+        return dblDefaultValue;
+    }
     
     bool ReadBoolean(std::string_view szSection, std::string_view szKey, bool bolDefaultValue)
     {
