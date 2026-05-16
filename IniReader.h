@@ -140,7 +140,22 @@ public:
                 if (collection.has(szKey.data()))
                 {
                     auto& value = collection[szKey.data()];
-                    return static_cast<float>(std::atof(value.data()));
+                    // Get rid of comments if any
+                    auto comment_pos = value.find("//");
+                    if (comment_pos != std::string::npos)
+                    {
+                        value.resize(comment_pos);
+                    }
+                    // Handle ratio strings like "16:9"
+                    auto colon_pos = value.find(':');
+                    // If there's no colon character ':', just convert to float
+                    if (colon_pos == std::string::npos)
+                    {
+                        return std::stof(value.data());
+                    }
+                    auto numerator = std::stod(value.substr(0, colon_pos));
+                    auto denominator = std::stod(value.substr(colon_pos + 1));
+                    return static_cast<float>(numerator / denominator);
                 }
             }
         }
